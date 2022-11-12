@@ -7,7 +7,7 @@ from bot.helper.drive_utils.gdriveTools import GoogleDriveHelper
 from bot.helper.ext_utils.bot_utils import *
 from bot.helper.ext_utils.clone_status import CloneStatus
 from bot.helper.ext_utils.exceptions import DDLException
-from bot.helper.ext_utils.parser import unified, gdtot, udrive
+from bot.helper.ext_utils.parser import unified, gdtot, udrive, shareDrive
 from bot.helper.telegram_helper.message_utils import sendMessage, editMessage, deleteMessage
 from bot.helper.telegram_helper.bot_commands import BotCommands
 from bot.helper.telegram_helper.filters import CustomFilters
@@ -35,7 +35,8 @@ def cloneNode(update, context):
     is_katdrive = is_katdrive_link(link)
     is_kolop = is_kolop_link(link)
     is_drivefire = is_drivefire_link(link)
-    if (is_gdtot  or is_appdrive or is_gdflix or is_driveapp or is_drivelinks or is_drivebit or is_drivesharer or is_hubdrive or is_drivehub or is_katdrive or is_kolop or is_drivefire):
+    is_sharedrive = is_sharedrive_link(link)
+    if (is_gdtot  or is_appdrive or is_gdflix or is_driveapp or is_drivelinks or is_drivebit or is_drivesharer or is_hubdrive or is_drivehub or is_katdrive or is_kolop or is_drivefire or is_sharedrive):
         try:
             msg = sendMessage(f"<b>Processing:</b> <code>{link}</code>", context.bot, update)
             LOGGER.info(f"Processing: {link}")
@@ -63,6 +64,8 @@ def cloneNode(update, context):
                 link = udrive(link)
             if is_drivefire:
                 link = udrive(link)
+            if is_sharedrive:
+                link = shareDrive(link)
             deleteMessage(context.bot, msg)
         except DDLException as e:
             deleteMessage(context.bot, msg)
@@ -78,9 +81,12 @@ def cloneNode(update, context):
         deleteMessage(context.bot, msg)
         status_class.set_status(True)
         sendMessage(result, context.bot, update)
-        if (is_appdrive or is_gdtot or is_gdflix or is_driveapp or is_drivelinks or is_drivebit or is_drivesharer or is_hubdrive or is_drivehub or is_katdrive or is_kolop or is_drivefire):
-            LOGGER.info(f"Deleting: {link}")
-            gd.deleteFile(link)
+        if (is_appdrive or is_gdtot or is_gdflix or is_driveapp or is_drivelinks or is_drivebit or is_drivesharer or is_hubdrive or is_drivehub or is_katdrive or is_kolop or is_drivefire or is_sharedrive):
+            try:
+                LOGGER.info(f"Deleting: {link}")
+                gd.deleteFile(link)
+            except:
+                LOGGER.info(f"This file cannot be deleted!!, maybe this file is not in your google drive account!")
     else:
         sendMessage("<b>Send a Drive / AppDrive / DriveApp / GDToT link along with command</b>", context.bot, update)
         LOGGER.info("Cloning: None")
