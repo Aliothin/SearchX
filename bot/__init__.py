@@ -157,6 +157,13 @@ except KeyError:
     DRIVEFIRE_CRYPT = None
     
 try:
+    SHAREDRIVE_PHPCKS = get_config('SHAREDRIVE_PHPCKS')
+    if len(SHAREDRIVE_PHPCKS) == 0:
+        raise KeyError
+except KeyError:
+    SHAREDRIVE_PHPCKS = None    
+    
+try:
     DRIVE_INDEX_URL = get_config('DRIVE_INDEX_URL')
     if len(DRIVE_INDEX_URL) == 0:
         DRIVE_INDEX_URL = None
