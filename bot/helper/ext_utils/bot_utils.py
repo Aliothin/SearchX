@@ -66,6 +66,10 @@ def is_drivefire_link(url: str):
     url = re.match(r'https?://(drivefire)\.\S+', url)
     return bool(url)
 
+def is_sharedrive_link(url: str):
+    url = re.match(r'https?://(sharedrive)\.\S+', url)
+    return bool(url)
+
 def is_adfly_link(url: str):
     url = re.match(r'https?://(adf)\.ly/\S+', url)
     return bool(url)
