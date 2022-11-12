@@ -5,7 +5,7 @@ import requests
 from lxml import etree
 from urllib.parse import urlparse, parse_qs
 
-from bot import UNIFIED_EMAIL, UNIFIED_PASS, GDTOT_CRYPT, HUBDRIVE_CRYPT, KATDRIVE_CRYPT, DRIVEFIRE_CRYPT
+from bot import UNIFIED_EMAIL, UNIFIED_PASS, GDTOT_CRYPT, HUBDRIVE_CRYPT, KATDRIVE_CRYPT, DRIVEFIRE_CRYPT, SHAREDRIVE_PHPCKS
 from bot.helper.ext_utils.exceptions import DDLException
 
 account = {
@@ -189,3 +189,59 @@ def gdtot(url: str) -> str:
         return info['gdrive_link']
     else:
         raise DDLException(f"{info['message']}")
+
+        
+def shareDrive(url,directLogin=True):
+
+    scrapper = requests.Session()
+
+    #retrieving session PHPSESSID
+    cook = scrapper.get(url)
+    cookies = cook.cookies.get_dict()
+    PHPSESSID = cookies['PHPSESSID']
+
+    headers = {
+        'authority' : urlparse(url).netloc,
+        'Content-Type' : 'application/x-www-form-urlencoded; charset=UTF-8',
+        'Origin' : f'https://{urlparse(url).netloc}/',
+        'referer' : url,
+        'User-Agent' : 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36 Edg/107.0.1418.35',
+        'X-Requested-With	' : 'XMLHttpRequest'
+    }
+
+    if directLogin==False:
+        cookies = {
+            'PHPSESSID' : PHPSESSID,
+            'PHPCKS' : SHAREDRIVE_PHPCKS
+        }
+
+        data = {
+            'id' : url.rsplit('/',1)[1],
+            'key' : 'original'
+        }
+    else:
+        cookies = {
+            'PHPSESSID' : PHPSESSID
+        }
+
+        data = {
+            'id' : url.rsplit('/',1)[1],
+            'key' : 'direct'
+        }
+
+    
+    resp = scrapper.post(f'https://{urlparse(url).netloc}/post', headers=headers, data=data, cookies=cookies)
+
+    if directLogin==False:
+        driveUrl = resp['redirect']
+        return driveUrl
+    else:
+        try:
+            toJson = resp.json()
+            driveUrl = toJson['redirect']
+            return driveUrl
+        except:
+            if len(SHAREDRIVE_PHPCKS)>0:
+                shareDrive(url,directLogin=False)
+            else:
+                raise DDLException('Direct Login is not there and you have not provided SHAREDRIVE_PHPCKS cookie value!!')        
